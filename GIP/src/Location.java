@@ -1,3 +1,6 @@
+import java.util.Collection;
+import java.util.HashMap;
+
 /**
  * Deze klasse modelleert verschillende geografische locaties.
  */
@@ -22,9 +25,8 @@ public class Location {
 	public Location(int ID, String name, String address){
 		this.ID = ID;
 		this.name = name;
-		this.address = address;		
-	}
-
+		this.address = address;	
+	}	
 
 	public int getID() {
 		return ID;
