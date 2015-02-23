@@ -14,17 +14,14 @@ import java.util.HashMap;
  */
 public class Location {
 	private int ID;
-	private String name;
 	private String address;
 	
 	/**
 	 * @param ID
-	 * @param name
 	 * @param address
 	 */
-	public Location(int ID, String name, String address){
+	public Location(int ID, String address){
 		this.ID = ID;
-		this.name = name;
 		this.address = address;	
 	}	
 
@@ -34,14 +31,6 @@ public class Location {
 
 	public void setID(int iD) {
 		ID = iD;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public String getAddress() {

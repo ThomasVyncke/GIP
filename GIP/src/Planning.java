@@ -1,14 +1,23 @@
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 
 
 public class Planning {
 
 	private Date planningDate;
 	private String author;
+	private HashMap<Integer,Job> jobs;
 	
-	public Planning(Date planningDate, String author, Client client, Depot depot, AVC avc){
+	/**
+	 * @param planningDate
+	 * @param author
+	 * @param jobs: HashMap containing all the jobs that need to be processed during the planningDate.
+	 */
+	public Planning(Date planningDate, String supervisor, HashMap<Integer, Job> jobs){
 		this.planningDate = planningDate;
-		this.author = author;
+		this.author = supervisor;
+		this.jobs = jobs;
 	}
 	
 	
