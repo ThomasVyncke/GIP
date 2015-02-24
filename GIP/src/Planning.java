@@ -9,7 +9,6 @@ public class Planning {
 	public static final double distanceRatio = 1.5;
 	private Date planningDate;
 	private String author;
-	private HashMap<Integer,Job> jobs;
 	private HashMap<Integer,Job> completedJobs;
 	private HashMap<Integer,Job> idleJobs;
 	
@@ -21,9 +20,30 @@ public class Planning {
 	public Planning(Date planningDate, String supervisor, HashMap<Integer, Job> jobs){
 		this.planningDate = planningDate;
 		this.author = supervisor;
-		this.jobs = jobs;
+		this.idleJobs = jobs;
 	}
+	
+	/**
+	 * 
+	 * job1 :Klant A --> AVC
+	 * job2: Klant B --> AVC
+	 * 
+	 * Tijdsparen berekenen tussen elke start en stoplocatie.
+	 * Bovendien ook tussen elke stoplocatie en startlocatie van een andere job. 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 * @return
+	 */
 		
+	
+	public HashMap<Job,Integer> pairTimes(){
+		for(int i=0; i<idleJobs.size(); i++){
+			idleJobs
+	}
 	public String getAuthor() {
 		return author;
 	}
