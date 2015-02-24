@@ -12,6 +12,7 @@ public class Depot extends Location {
 		this.emptyContainers = emptyContainers;
 		this.fullContainers = fullContainers;
 		this.amountOfTrucks = amountOfTrucks;
+		this.additionalTime = 0;
 	}
 
 	public int getEmptyContainers() {

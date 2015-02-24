@@ -26,20 +26,28 @@ public class Job {
 		this.orderTime = orderTime;
 	}
 
+	public Location getStartLocation() {
+		return startLocation;
+	}
+
+	public void setStartLocation(Location startLocation) {
+		this.startLocation = startLocation;
+	}
+
+	public Location getTargetLocation() {
+		return targetLocation;
+	}
+
+	public void setTargetLocation(Location targetLocation) {
+		this.targetLocation = targetLocation;
+	}
+
 	public Date getDueTime() {
 		return dueTime;
 	}
 
 	public void setDueTime(Date dueTime) {
 		this.dueTime = dueTime;
-	}
-
-	public Location getLocation() {
-		return location;
-	}
-
-	public void setLocation(Location location) {
-		this.location = location;
 	}
 
 	public String getJobType() {
@@ -53,15 +61,36 @@ public class Job {
 		this.jobType = jobType;
 	}
 	
-	public float getJobExecutionTime(){
-		
+	public float getJobExecutionTime() throws NullPointerException{
+		String jobType = this.getJobType();
+		if (jobType.equals("EmptyAVC")){
+			return 20;
+		}
+		if (jobType.equals("LoadOnTruck")){
+			return 12;
+		}
+		if (jobType.equals("PlaceClient")){
+			return 12;
+		}
+		if (jobType.equals("LoadPlaceDepot")){
+			return 6;
+		}
+		if (jobType.equals("FillContainer")){
+			return 30;
+		}
+		if (jobType.equals("SwitchContainer")){
+			return 25;
+		}
+		else throw new NullPointerException("non-specified execution time for jobType. please specify in code.");		
 	}
 	
-	public float getJobTime(){
-		//travelTime + executionTime
+	public float getJobTime() throws NullPointerException{
+		//travelTime + executionTime + client specific additionalTime
 		float travelTime = startLocation.getTravelTimeTo(targetLocation);
-		
-		return travelTime;
+		float executionTime = this.getJobExecutionTime();
+		float additionalTime = this.targetLocation.getAdditionalTime();
+		float jobTime = travelTime + executionTime + additionalTime;
+		return jobTime;
 	}
 }
 	

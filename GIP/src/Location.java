@@ -12,16 +12,12 @@ import java.util.HashMap;
  *  
  * 
  */
-/**
- * @author Thomas
- *
- */
 public class Location {
 	private int ID;
 	private float latitude;
 	private float longitude;
+	protected float additionalTime;
 	
-
 
 	/**
 	 * @param ID
@@ -30,7 +26,7 @@ public class Location {
 	public Location(int ID, float latitude, float longitude){
 		this.ID = ID;
 		this.latitude = latitude;
-		this.longitude= longitude;		
+		this.longitude= longitude;
 	}	
 
 	public int getID() {
@@ -55,6 +51,14 @@ public class Location {
 
 	public void setLongitude(float longitude) {
 		this.longitude = longitude;
+	}
+	
+	public float getAdditionalTime() {
+		return additionalTime;
+	}
+
+	public void setAdditionalTime(float additionalTime) {
+		this.additionalTime = additionalTime;
 	}
 	
 	/**

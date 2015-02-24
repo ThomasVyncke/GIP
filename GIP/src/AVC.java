@@ -20,6 +20,7 @@ public class AVC extends Location {
 		this.timeOpening = timeStart;
 		this.timeClosing = timeStop;
 		this.wasteType = wasteType;		
+		this.additionalTime = 0;
 	}
 
 
