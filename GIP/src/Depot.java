@@ -7,8 +7,8 @@ public class Depot extends Location {
 	
 
 
-	public Depot(int ID, String address, int emptyContainers, int fullContainers, int amountOfTrucks) {
-		super(ID, address);
+	public Depot(int ID, float latitude, float longitude, int emptyContainers, int fullContainers, int amountOfTrucks) {
+		super(ID, latitude, longitude);
 		this.emptyContainers = emptyContainers;
 		this.fullContainers = fullContainers;
 		this.amountOfTrucks = amountOfTrucks;
