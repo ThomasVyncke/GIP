@@ -16,7 +16,7 @@ public class Location {
 	private int ID;
 	private float latitude;
 	private float longitude;
-	protected float additionalTime;
+	protected float additionalTime = 0;
 	
 
 	/**
@@ -27,6 +27,13 @@ public class Location {
 		this.ID = ID;
 		this.latitude = latitude;
 		this.longitude= longitude;
+	}	
+	
+	public Location(int ID, float latitude, float longitude, float additionalTime){
+		this.ID = ID;
+		this.latitude = latitude;
+		this.longitude= longitude;
+		this.setAdditionalTime(additionalTime);
 	}	
 
 	public int getID() {
@@ -102,7 +109,7 @@ public class Location {
 	 */
 	public float getTravelTimeTo(Location location){
 		float distance = getDistanceTo(location);
-		float travelTime = (float) (distance*Planning.distanceRatio/Planning.averageSpeed);
+		float travelTime = (float) ((distance*Planning.distanceRatio)/Planning.averageSpeed);
 		return travelTime;
 	}
 }

@@ -1,11 +1,13 @@
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 public class AVC extends Location {
 
-	private Date timeOpening;
-	private Date timeClosing;
-	private String wasteType; 
+	private double timeOpening;
+	private double timeClosing;
+	private ArrayList<String> wasteType; 
 	
 	
 	/**
@@ -15,7 +17,7 @@ public class AVC extends Location {
 	 * @param timeStop
 	 * @param wasteType: Type of waste processed in the AVC = {general, paper, buildMaterial, dangerousWaste}
 	 */
-	public AVC(int ID, float latitude, float longitude, Date timeStart, Date timeStop, String wasteType) {
+	public AVC(int ID, float latitude, float longitude, double timeStart, double timeStop, ArrayList<String> wasteType) {
 		super(ID, latitude, longitude);
 		this.timeOpening = timeStart;
 		this.timeClosing = timeStop;
@@ -24,32 +26,32 @@ public class AVC extends Location {
 	}
 
 
-	public Date getTimeStart() {
+	public double getTimeStart() {
 		return timeOpening;
 	}
 
 
-	public void setTimeStart(Date timeStart) {
+	public void setTimeStart(double timeStart) {
 		this.timeOpening = timeStart;
 	}
 
 
-	public Date getTimeStop() {
+	public double getTimeStop() {
 		return timeClosing;
 	}
 
 
-	public void setTimeStop(Date timeStop) {
+	public void setTimeStop(double timeStop) {
 		this.timeClosing = timeStop;
 	}
 
 
-	public String getWasteType() {
+	public ArrayList<String> getWasteType() {
 		return wasteType;
 	}
 
 
-	public void setWasteType(String wasteType) {
+	public void setWasteType(ArrayList<String> wasteType) {
 		this.wasteType = wasteType;
 	}
 

@@ -3,13 +3,13 @@ import java.util.Date;
 
 public class Job {
 
-	private Date orderTime; 
-	private Date dueTime;
+	private double orderTime; 
+	private double dueTime;
 	private String jobType;
 	private Location startLocation;
 	private Location targetLocation;
 	
-	public Job(Date orderTime, Date dueTime, String jobType, Location startLocation, Location targetLocation){
+	public Job(double orderTime, double dueTime, String jobType, Location startLocation, Location targetLocation){
 		this.orderTime = orderTime;
 		this.dueTime = dueTime;
 		this.jobType = jobType;
@@ -18,11 +18,11 @@ public class Job {
 		
 	}
 
-	public Date getOrderTime() {
+	public double getOrderTime() {
 		return orderTime;
 	}
 
-	public void setOrderTime(Date orderTime) {
+	public void setOrderTime(double orderTime) {
 		this.orderTime = orderTime;
 	}
 
@@ -42,11 +42,11 @@ public class Job {
 		this.targetLocation = targetLocation;
 	}
 
-	public Date getDueTime() {
+	public double getDueTime() {
 		return dueTime;
 	}
 
-	public void setDueTime(Date dueTime) {
+	public void setDueTime(double dueTime) {
 		this.dueTime = dueTime;
 	}
 

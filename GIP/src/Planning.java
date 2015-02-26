@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 public class Planning {
 	//unit: m/s (equivalent to 50km/h)
-	public static final double averageSpeed = 13.9;
+	public static final double averageSpeed = 19.44;
 	public static final double distanceRatio = 1.5;
 	private Date planningDate;
 	private String author;
@@ -40,10 +40,18 @@ public class Planning {
 	 */
 		
 	
-	public HashMap<Job,Integer> pairTimes(){
+	public HashMap<Integer, Float> pairTimes(){
+		HashMap<Integer, Float> pairTimes = new HashMap<Integer, Float>();
+		
 		for(int i=0; i<idleJobs.size(); i++){
-			idleJobs
+			Job job = idleJobs.get(i);
+			float time = job.getJobTime();
+			pairTimes.put(i, time);		
+		}
+		return pairTimes;			
 	}
+		
+		
 	public String getAuthor() {
 		return author;
 	}
