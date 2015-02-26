@@ -9,13 +9,34 @@ public class Job {
 	private Location startLocation;
 	private Location targetLocation;
 	
+	
+	public Job(double orderTime, double dueTime, String jobType, Location startLocation){
+		this.orderTime = orderTime;
+		this.dueTime = dueTime;
+		this.jobType = jobType;
+		this.startLocation = startLocation;
+		
+	}
+	
 	public Job(double orderTime, double dueTime, String jobType, Location startLocation, Location targetLocation){
 		this.orderTime = orderTime;
 		this.dueTime = dueTime;
 		this.jobType = jobType;
 		this.startLocation = startLocation;
-		this.targetLocation = targetLocation;
+		this.targetLocation = targetLocation;		
+	}
+	
+	public Location getTargetLocation(){
+		//EmptyAVC, LoadOnTruck, PlaceClient, LoadPlaceDepot, FillContainer, SwitchContainer
+		if(this.jobType.equals("EmptyAVC")){
+			Location client = this.getStartLocation();
+			if(client instanceof Client)
+				Client client = (Client) client;
+				Planning.getClosestAVC(client);
+			
+		}
 		
+		if(op tijd & juiste type)
 	}
 
 	public double getOrderTime() {

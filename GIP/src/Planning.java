@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -11,6 +12,8 @@ public class Planning {
 	private String author;
 	private HashMap<Integer,Job> completedJobs;
 	private HashMap<Integer,Job> idleJobs;
+	private static HashMap<Integer,Client> clients = new HashMap<Integer, Client>();
+	private static HashMap<Integer,AVC> avcs = new HashMap<Integer, AVC>();
 	
 	/**
 	 * @param planningDate
@@ -68,5 +71,37 @@ public class Planning {
 		this.planningDate = planningDate;
 	} 
 	
+	public void putClient(Client client){
+		Integer size = clients.size();
+		clients.put(size+1,client);		
+	}
+	
+	public void putAVC(AVC avc){
+		Integer size = avcs.size();
+		avcs.put(size+1,avc);		
+	}
+	
+	public AVC getClosestAVC(Client client){
+		String clientType = client.getWasteType();
+		ArrayList<AVC> suitedAVCS = new ArrayList<AVC>();
+		//Make a list with the AVCs which are able to process the clients type of waste.
+		for(int i = 0;i<avcs.size()-1;i++){
+			ArrayList<String> avcTypes = avcs.get(i).getWasteType();
+			if(avcTypes.contains(clientType)){
+				suitedAVCS.add(avcs.get(i));
+			}
+		}
+		float closestDistance = (float) Double.POSITIVE_INFINITY;
+		
+		AVC closestAVC = suitedAVCS.get(0);
+		for(int j = 0;j<suitedAVCS.size()-1;j++){
+			float dist = client.getDistanceTo(suitedAVCS.get(j));
+			if(dist < closestDistance){
+				closestDistance = dist;
+				closestAVC = suitedAVCS.get(j);
+			}
+		}
+		return closestAVC;		
+	}
 	
 }

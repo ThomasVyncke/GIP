@@ -24,8 +24,7 @@ public class Client extends Location {
 		this.sameContainer = sameContainer;
 		this.additionalTime = additionalTime;
 	}
-	
-	
+		
 	public String getWasteType() {
 		return wasteType;
 	}
