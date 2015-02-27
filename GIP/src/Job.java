@@ -7,18 +7,18 @@ public class Job {
 	private double dueTime;
 	private String jobType;
 	private Location startLocation;
-	private Location targetLocation;
+	private Location targetLocation = null;
+	private Container container = null; 
 	
 	
-	public Job(double orderTime, double dueTime, String jobType, Location startLocation){
+	public Job(double orderTime, double dueTime, String jobType, Location startLocation, Container container){
 		this.orderTime = orderTime;
 		this.dueTime = dueTime;
 		this.jobType = jobType;
-		this.startLocation = startLocation;
-		
+		this.startLocation = startLocation;		
 	}
 	
-	public Job(double orderTime, double dueTime, String jobType, Location startLocation, Location targetLocation){
+	public Job(double orderTime, double dueTime, String jobType, Location startLocation, Location targetLocation, Container container){
 		this.orderTime = orderTime;
 		this.dueTime = dueTime;
 		this.jobType = jobType;
@@ -26,18 +26,44 @@ public class Job {
 		this.targetLocation = targetLocation;		
 	}
 	
-	public Location getTargetLocation(){
+	public void generateTargetLocation(){
 		//EmptyAVC, LoadOnTruck, PlaceClient, LoadPlaceDepot, FillContainer, SwitchContainer
+		Location startLocation = this.getStartLocation();
 		if(this.jobType.equals("EmptyAVC")){
-			Location client = this.getStartLocation();
-			if(client instanceof Client)
-				Client client = (Client) client;
-				Planning.getClosestAVC(client);
-			
+			if(startLocation instanceof Client){
+				container = startLocation.getContainer().get(0);
+				AVC avc = Planning.getClosestAVC(container);
+				this.setTargetLocation(avc);
+			}
+			else{
+				throw new NullPointerException("an emptyAVC job its startlucation must be a client");
+				}
 		}
-		
-		if(op tijd & juiste type)
-	}
+		if(this.jobType.equals("LoadOnTruck")){
+			this.setTargetLocation(null);
+		}
+		if(this.jobType.equals("PlaceClient")){
+			//brengt in rekening dat sommige klanten altijd zelfde container nodig hebben. dus container bevat klant.
+			if(container.getClient() != null){
+				this.setTargetLocation(container.getClient());
+			}		
+			if(this.getTargetLocation() == null){
+				throw new NullPointerException("there can be no job of type placeclient without targetlocation or client attached");
+			}
+		}
+		if(this.jobType.equals("LoadPlaceDepot")){
+			this.setTargetLocation(null);
+		}		
+		if(this.jobType.equals("FillContainer")){	
+			if(this.getTargetLocation() == null)
+				throw new NullPointerException("there can be no job of type fillcontainer without targetlocation");
+		}
+		if(this.jobType.equals("SwitchContainer")){
+			if(this.getTargetLocation() == null)
+				throw new NullPointerException("there can be no job of type fillcontainer without targetlocation");
+		}
+			
+	}	
 
 	public double getOrderTime() {
 		return orderTime;
@@ -107,7 +133,14 @@ public class Job {
 	
 	public float getJobTime() throws NullPointerException{
 		//travelTime + executionTime + client specific additionalTime
-		float travelTime = startLocation.getTravelTimeTo(targetLocation);
+		this.generateTargetLocation();
+		Location target = this.getTargetLocation();
+		float travelTime;
+		if(target != null)
+			travelTime = getStartLocation().getTravelTimeTo(target);			
+		else
+			travelTime = 0;
+			
 		float executionTime = this.getJobExecutionTime();
 		float additionalTime = this.targetLocation.getAdditionalTime();
 		float jobTime = travelTime + executionTime + additionalTime;

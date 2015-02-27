@@ -24,6 +24,14 @@ public class Client extends Location {
 		this.sameContainer = sameContainer;
 		this.additionalTime = additionalTime;
 	}
+	
+	public Client(int ID, String name, float latitude, float longitude, String containerLocation, String wasteType, Boolean sameContainer, float additionalTime, Container startContainer){
+		super(ID, latitude, longitude);
+		this.wasteType = wasteType;
+		this.sameContainer = sameContainer;
+		this.additionalTime = additionalTime;
+		this.addContainer(startContainer);
+	}
 		
 	public String getWasteType() {
 		return wasteType;

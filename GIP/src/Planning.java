@@ -81,13 +81,18 @@ public class Planning {
 		avcs.put(size+1,avc);		
 	}
 	
-	public AVC getClosestAVC(Client client){
-		String clientType = client.getWasteType();
+	/**
+	 * Evt. nog een test voor timewindows invoeren.
+	 * @param container
+	 * @return
+	 */
+	public static AVC getClosestAVC(Container container){
+		String containerWasteType = container.getWasteType();
 		ArrayList<AVC> suitedAVCS = new ArrayList<AVC>();
 		//Make a list with the AVCs which are able to process the clients type of waste.
 		for(int i = 0;i<avcs.size()-1;i++){
 			ArrayList<String> avcTypes = avcs.get(i).getWasteType();
-			if(avcTypes.contains(clientType)){
+			if(avcTypes.contains(containerWasteType)){
 				suitedAVCS.add(avcs.get(i));
 			}
 		}
@@ -95,7 +100,7 @@ public class Planning {
 		
 		AVC closestAVC = suitedAVCS.get(0);
 		for(int j = 0;j<suitedAVCS.size()-1;j++){
-			float dist = client.getDistanceTo(suitedAVCS.get(j));
+			float dist = container.getContainerLocation().getDistanceTo(suitedAVCS.get(j));
 			if(dist < closestDistance){
 				closestDistance = dist;
 				closestAVC = suitedAVCS.get(j);
