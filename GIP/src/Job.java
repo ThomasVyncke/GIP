@@ -1,6 +1,10 @@
 import java.util.Date;
 
 
+/**
+ * @author Thomas
+ *
+ */
 public class Job {
 
 	private double orderTime; 
@@ -11,19 +15,26 @@ public class Job {
 	private Container container = null; 
 	
 	
-	public Job(double orderTime, double dueTime, String jobType, Location startLocation, Container container){
-		this.orderTime = orderTime;
-		this.dueTime = dueTime;
+	public Job(String jobType, Location startLocation, Container container){
+//		this.orderTime = orderTime;
+//		this.dueTime = dueTime;
 		this.jobType = jobType;
-		this.startLocation = startLocation;		
+		this.startLocation = startLocation;	
+		this.generateTargetLocation();
+		if(container != null){
+			container.setContainerLocation(startLocation);
+		}
 	}
 	
-	public Job(double orderTime, double dueTime, String jobType, Location startLocation, Location targetLocation, Container container){
-		this.orderTime = orderTime;
-		this.dueTime = dueTime;
+	public Job(String jobType, Location startLocation, Location targetLocation, Container container){
+//		this.orderTime = orderTime;
+//		this.dueTime = dueTime;
 		this.jobType = jobType;
 		this.startLocation = startLocation;
-		this.targetLocation = targetLocation;		
+		this.targetLocation = targetLocation;	
+		if(container != null){
+			container.setContainerLocation(targetLocation);
+		}
 	}
 	
 	public void generateTargetLocation(){
@@ -52,7 +63,12 @@ public class Job {
 			}
 		}
 		if(this.jobType.equals("LoadPlaceDepot")){
-			this.setTargetLocation(null);
+			if(this.getStartLocation() instanceof Depot){
+				this.setTargetLocation(null);
+			}
+			else{
+				this.setTargetLocation(Planning.depot);
+			}
 		}		
 		if(this.jobType.equals("FillContainer")){	
 			if(this.getTargetLocation() == null)
@@ -65,13 +81,13 @@ public class Job {
 			
 	}	
 
-	public double getOrderTime() {
-		return orderTime;
-	}
-
-	public void setOrderTime(double orderTime) {
-		this.orderTime = orderTime;
-	}
+//	public double getOrderTime() {
+//		return orderTime;
+//	}
+//
+//	public void setOrderTime(double orderTime) {
+//		this.orderTime = orderTime;
+//	}
 
 	public Location getStartLocation() {
 		return startLocation;
@@ -133,7 +149,7 @@ public class Job {
 	
 	public float getJobTime() throws NullPointerException{
 		//travelTime + executionTime + client specific additionalTime
-		this.generateTargetLocation();
+		
 		Location target = this.getTargetLocation();
 		float travelTime;
 		if(target != null)

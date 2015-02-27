@@ -9,10 +9,10 @@ public class TEst {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
-		
-		
+		Depot depot= new Depot(1,(float) 50.8, (float) 4.7);		
 		Client client1 = new Client(1,"Gille",(float) 50.873459,(float) 4.716051,"boeitnogniet","Paper",true,0);
 		Client client2 = new Client(1,"Robin",(float) 50.818181,(float) 4.902819,"boeitnogniet","Paper",true,0);
+		
 		ArrayList<String> wasteType = new ArrayList<String>();
 		wasteType.add(0,"Paper");
 		AVC avc = new AVC(1,(float) 50.859498,(float) 4.774871, 9,5,wasteType);

@@ -7,39 +7,9 @@ public class Depot extends Location {
 	
 
 
-	public Depot(int ID, float latitude, float longitude, int emptyContainers, int fullContainers, int amountOfTrucks) {
+	public Depot(int ID, float latitude, float longitude) {
 		super(ID, latitude, longitude);
-		this.emptyContainers = emptyContainers;
-		this.fullContainers = fullContainers;
-		this.amountOfTrucks = amountOfTrucks;
 		this.additionalTime = 0;
-	}
-
-	public int getEmptyContainers() {
-		return emptyContainers;
-	}
-
-
-	public void setEmptyContainers(int emptyContainers) {
-		this.emptyContainers = emptyContainers;
-	}
-
-
-	public int getFullContainers() {
-		return fullContainers;
-	}
-
-
-	public void setFullContainers(int fullContainers) {
-		this.fullContainers = fullContainers;
-	}
-	
-	public int getAmountOfTrucks() {
-		return amountOfTrucks;
-	}
-
-	public void setAmountOfTrucks(int amountOfTrucks) {
-		this.amountOfTrucks = amountOfTrucks;
 	}
 
 
