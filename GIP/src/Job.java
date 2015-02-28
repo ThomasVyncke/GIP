@@ -22,7 +22,12 @@ public class Job {
 		this.startLocation = startLocation;	
 		this.generateTargetLocation();
 		if(container != null){
+			this.container = container;
 			container.setContainerLocation(startLocation);
+			startLocation.addContainer(container);
+		}
+		if(jobType.equals("EmptyAVC")){
+			
 		}
 	}
 	
@@ -33,10 +38,20 @@ public class Job {
 		this.startLocation = startLocation;
 		this.targetLocation = targetLocation;	
 		if(container != null){
+			this.container = container;
 			container.setContainerLocation(targetLocation);
+			targetLocation.addContainer(container);
 		}
 	}
 	
+	public Container getContainer() {
+		return container;
+	}
+
+	public void setContainer(Container container) {
+		this.container = container;
+	}
+
 	public void generateTargetLocation(){
 		//EmptyAVC, LoadOnTruck, PlaceClient, LoadPlaceDepot, FillContainer, SwitchContainer
 		Location startLocation = this.getStartLocation();
@@ -139,7 +154,8 @@ public class Job {
 			return 6;
 		}
 		if (jobType.equals("FillContainer")){
-			return 30;
+			System.out.println("JobExecutionTime FillContainer job= " + 30);
+			return 30;			
 		}
 		if (jobType.equals("SwitchContainer")){
 			return 25;
@@ -158,7 +174,11 @@ public class Job {
 			travelTime = 0;
 			
 		float executionTime = this.getJobExecutionTime();
-		float additionalTime = this.targetLocation.getAdditionalTime();
+		float additionalTime;
+		if(target != null)
+			additionalTime = target.getAdditionalTime();
+		else
+			additionalTime = 0;
 		float jobTime = travelTime + executionTime + additionalTime;
 		return jobTime;
 	}

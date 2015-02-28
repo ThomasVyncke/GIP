@@ -8,12 +8,6 @@ public class Container {
 	private String wasteType;
 	private Client client = null;
 
-	
-
-
-
-
-
 	public Container(int id, int capacity, Location containerLocation, boolean isEmpty, String wasteType){
 		this.ID = id;
 		this.capacity = capacity;

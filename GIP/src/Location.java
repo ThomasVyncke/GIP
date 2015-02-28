@@ -18,7 +18,7 @@ public class Location {
 	private float latitude;
 	private float longitude;
 	protected float additionalTime = 0;
-	protected ArrayList<Container> containers;
+	protected ArrayList<Container> containers = new ArrayList<Container>();
 
 	/**
 	 * @param ID

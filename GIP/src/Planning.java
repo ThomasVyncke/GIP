@@ -8,21 +8,21 @@ public class Planning {
 	//unit: m/s (equivalent to 50km/h)
 	public static final double averageSpeed = 19.44;
 	public static final double distanceRatio = 1.5;
-	private Date planningDate;
+	private String planningDate;
 	private String author;
 	private ArrayList<Job> completedJobs;
-	private ArrayList<Job> idleJobs;
+	private ArrayList<Job> idleJobs = new ArrayList<Job>();
 	//HashMaps containing job times of the 
-	private HashMap<Job, Float> fsTimesFirstStage;
-	private HashMap<Job, Float> fsTimesSecondStage;
-	private HashMap<Job, Float> fsTimesThirdStage;
+	private HashMap<Job, Float> fsTimesFirstStage = new HashMap<Job,Float>();
+	private HashMap<Job, Float> fsTimesSecondStage = new HashMap<Job,Float>();
+	private HashMap<Job, Float> fsTimesThirdStage = new HashMap<Job,Float>();
 	private HashMap<Job, Float> fsTimes;
 	
 	private HashMap<Client, Container> containersAtClients;
 	
-	private ArrayList<Container> containers;
+	private ArrayList<Container> containers = new ArrayList<Container>();
 	private static HashMap<Integer,Client> clients = new HashMap<Integer, Client>();
-	private static HashMap<Integer,AVC> avcs = new HashMap<Integer, AVC>();
+	private static ArrayList<AVC> avcs = new ArrayList<AVC>();
 	static Depot depot =  new Depot(1,(float) 50.8, (float) 4.7);	
 	
 	/**
@@ -30,10 +30,9 @@ public class Planning {
 	 * @param author
 	 * @param jobs: HashMap containing all the jobs that need to be processed during the planningDate.
 	 */
-	public Planning(Date planningDate, String supervisor, ArrayList<Job> jobs){
+	public Planning(String planningDate, String supervisor){
 		this.planningDate = planningDate;
 		this.author = supervisor;
-		this.idleJobs = jobs;
 	}
 	
 	/**
@@ -65,25 +64,27 @@ public class Planning {
 	
 	public void setAuthor(String author) {
 		this.author = author;
-	}
+	}	
 	
-	public Date getPlanningDate() {
-		return planningDate;
+	public void addContainer(Container container){
+		containers.add(container);
 	}
-	
-	public void setPlanningDate(Date planningDate) {
-		this.planningDate = planningDate;
-	} 
 	
 	public void putClient(Client client){
 		Integer size = clients.size();
 		clients.put(size+1,client);		
 	}
 	
-	public void putAVC(AVC avc){
+	public void addAVC(AVC avc){
 		Integer size = avcs.size();
-		avcs.put(size+1,avc);		
+		avcs.add(size,avc);		
 	}
+	
+	public void putJob(Job job){
+		idleJobs.add(job);
+	}
+	
+	
 	
 	/**
 	 * Evt. nog een test voor timewindows invoeren.
@@ -94,6 +95,7 @@ public class Planning {
 		String containerWasteType = container.getWasteType();
 		ArrayList<AVC> suitedAVCS = new ArrayList<AVC>();
 		//Make a list with the AVCs which are able to process the clients type of waste.
+		System.out.println(avcs.size());
 		for(int i = 0;i<avcs.size();i++){
 			ArrayList<String> avcTypes = avcs.get(i).getWasteType();
 			if(avcTypes.contains(containerWasteType)){
@@ -118,20 +120,23 @@ public class Planning {
 		for(int i = 0;i<idleJobs.size();i++){
 			float jobtime1 = 0;
 			float jobtime2 = 0;
-			Container container = new Container(i,1,depot,true,"");
-			containers.add(container);
+			
 			
 			if(idleJobs.get(i).getJobType().equals("FillContainer")){
 				//eerst opladen in depot, dan vullen bij de klant
-				Job job = new Job("LoadPlaceDepot",depot, container);
+					System.out.println("job "+i+" is a FillContainer Job.");
+				Job job = new Job("LoadPlaceDepot",depot, idleJobs.get(i).getContainer());
 				jobtime1 = job.getJobTime();
+					System.out.println("Load container in depot. Time: "+jobtime1);
 				Location target = idleJobs.get(i).getTargetLocation();
 				Job job1 = new Job("FillContainer",depot,target,containers.get(i));
 				jobtime2 = job1.getJobTime();
+					System.out.println("Fill container at client. Time: "+jobtime2);
 			}
 			if(idleJobs.get(i).getJobType().equals("SwitchContainer")){
 				//eerst opladen in depot, dan gaan wisselen bij de klant
-				Job job = new Job("LoadPlaceDepot",depot, container);
+					System.out.println("job"+i+" is a SwitchContainer Job.");
+				Job job = new Job("LoadPlaceDepot",depot, idleJobs.get(i).getContainer());
 				jobtime1 = job.getJobTime();
 				Job job1 = new Job("SwitchContainer",depot,idleJobs.get(i).getTargetLocation(),containers.get(i));
 				jobtime2 = job1.getJobTime();		
@@ -144,6 +149,7 @@ public class Planning {
 			}
 			if(idleJobs.get(i).getJobType().equals("LoadOnTruck")){
 				//niet opladen in depot, dan opladen bij de klant
+					System.out.println("job"+i+" is a LoadOnTruck Job.");
 				Job job1 = new Job("LoadOnTruck",depot,idleJobs.get(i).getTargetLocation(),null);
 				jobtime2 = job1.getJobTime();
 				//bij het aanmaken van de nieuwe job zet je de locatie van containers.get(i) op de klant.
@@ -156,9 +162,11 @@ public class Planning {
 			Float jobtime = (jobtime1 + jobtime2);
 			fsTimesFirstStage.put(idleJobs.get(i), jobtime);
 		}
+		//TO-DO: ContainerWasteType regelen!!
 		for(int j = 0;j<idleJobs.size();j++){
 			Job job = new Job("EmptyAVC",containers.get(j).getContainerLocation(),containers.get(j));
-			//na deze constructur heeft de job een targetlocation. De container van bij deze job moet als locatie deze targetlocation krijgen.
+			System.out.println("EmptyAVC job created");
+			//na deze constructor heeft de job een targetlocation. De container van bij deze job moet als locatie deze targetlocation krijgen.
 			containers.get(j).setContainerLocation(job.getTargetLocation());
 			float jobtime = job.getJobTime();
 			fsTimesSecondStage.put(idleJobs.get(j),jobtime);					
