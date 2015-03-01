@@ -4,9 +4,8 @@ public class Client extends Location {
 	private String name;
 	private String wasteType;
 	private Boolean sameContainer;
+	private Container containerAtClient;
 	
-
-
 	// TODO containerLocation een meer zinvolle inhoud geven dan String kan.
 	/**
 	 * @param ID
@@ -18,19 +17,27 @@ public class Client extends Location {
 	 * @param additionalTime: client specific additional time needed. 
 	 * 
 	 */
-	public Client(int ID, String name, float latitude, float longitude, String containerLocation, String wasteType, Boolean sameContainer, float additionalTime){
+	public Client(int ID, String name, float latitude, float longitude, String wasteType, Boolean sameContainer, float additionalTime){
 		super(ID, latitude, longitude);
 		this.wasteType = wasteType;
 		this.sameContainer = sameContainer;
 		this.additionalTime = additionalTime;
 	}
 	
-	public Client(int ID, String name, float latitude, float longitude, String containerLocation, String wasteType, Boolean sameContainer, float additionalTime, Container startContainer){
+	public Client(int ID, String name, float latitude, float longitude, String wasteType, Boolean sameContainer, float additionalTime, Container startContainer){
 		super(ID, latitude, longitude);
 		this.wasteType = wasteType;
 		this.sameContainer = sameContainer;
 		this.additionalTime = additionalTime;
 		this.addContainer(startContainer);
+	}
+	
+	public void addContainer(Container container){
+		this.containerAtClient = container;
+	}
+	
+	public Container getContainer(){
+		return containerAtClient;
 	}
 		
 	public String getWasteType() {

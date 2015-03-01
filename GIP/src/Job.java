@@ -19,15 +19,13 @@ public class Job {
 //		this.orderTime = orderTime;
 //		this.dueTime = dueTime;
 		this.jobType = jobType;
-		this.startLocation = startLocation;	
-		this.generateTargetLocation();
+		this.startLocation = startLocation;		
 		if(container != null){
 			this.container = container;
 			container.setContainerLocation(startLocation);
-			startLocation.addContainer(container);
 		}
-		if(jobType.equals("EmptyAVC")){
-			
+		this.generateTargetLocation();
+		if(jobType.equals("EmptyAVC")){			
 		}
 	}
 	
@@ -40,7 +38,6 @@ public class Job {
 		if(container != null){
 			this.container = container;
 			container.setContainerLocation(targetLocation);
-			targetLocation.addContainer(container);
 		}
 	}
 	
@@ -57,12 +54,12 @@ public class Job {
 		Location startLocation = this.getStartLocation();
 		if(this.jobType.equals("EmptyAVC")){
 			if(startLocation instanceof Client){
-				container = startLocation.getContainer().get(0);
-				AVC avc = Planning.getClosestAVC(container);
+				Client client = (Client) this.getStartLocation();
+				AVC avc = Planning.getClosestAVC(client);
 				this.setTargetLocation(avc);
 			}
 			else{
-				throw new NullPointerException("an emptyAVC job its startlucation must be a client");
+				throw new NullPointerException("an emptyAVC job its startlocation must be a client");
 				}
 		}
 		if(this.jobType.equals("LoadOnTruck")){
@@ -142,23 +139,23 @@ public class Job {
 	public float getJobExecutionTime() throws NullPointerException{
 		String jobType = this.getJobType();
 		if (jobType.equals("EmptyAVC")){
-			return 20;
+			return 20*60;
 		}
 		if (jobType.equals("LoadOnTruck")){
-			return 12;
+			return 12*60;
 		}
 		if (jobType.equals("PlaceClient")){
-			return 12;
+			return 12*60;
 		}
 		if (jobType.equals("LoadPlaceDepot")){
-			return 6;
+			return 6*60;
 		}
 		if (jobType.equals("FillContainer")){
-			System.out.println("JobExecutionTime FillContainer job= " + 30);
-			return 30;			
+//			System.out.println("JobExecutionTime FillContainer job= " + 30);
+			return 30*60;			
 		}
 		if (jobType.equals("SwitchContainer")){
-			return 25;
+			return 25*60;
 		}
 		else throw new NullPointerException("non-specified execution time for jobType. please specify in code.");		
 	}

@@ -18,7 +18,6 @@ public class Location {
 	private float latitude;
 	private float longitude;
 	protected float additionalTime = 0;
-	protected ArrayList<Container> containers = new ArrayList<Container>();
 
 	/**
 	 * @param ID
@@ -44,15 +43,6 @@ public class Location {
 	public void setID(int iD) {
 		ID = iD;
 	}
-	
-	public ArrayList<Container> getContainer() {
-		return containers;
-	}
-
-	public void addContainer(Container container) {
-		this.containers.add(container);
-	}
-
 	
 	public float getLatitude() {
 		return latitude;

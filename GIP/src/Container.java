@@ -16,13 +16,13 @@ public class Container {
 		this.wasteType = wasteType;
 	}
 	
-	public Container(int id, int capacity, Location containerLocation, boolean isEmpty, String wasteType, Client client){
+	public Container(int id, int capacity, Location containerLocation, boolean isEmpty, String wasteType, Client sameClient){
 		this.ID = id;
 		this.capacity = capacity;
 		this.containerLocation = containerLocation;
 		this.empty = empty;
 		this.wasteType = wasteType;
-		this.setClient(client);
+		this.setClient(sameClient);
 	}
 	
 	public Client getClient() {
