@@ -10,8 +10,8 @@ public class Test {
 		Planning planning = new Planning("Thomas");
 		
 		
-		Client client1 = new Client(1,"a",(float) 50.873459,(float) 4.716051,"Paper",true,0);
-		Client client2 = new Client(1,"b",(float) 50.818181,(float) 4.902819,"Paper",true,0);
+		Client client1 = new Client(1,"a",0, 36000, (float) 50.873459,(float) 4.716051,"Paper",true,0,15);
+		Client client2 = new Client(1,"b",0, 36000, (float) 50.818181,(float) 4.902819,"Paper",true,0,15);
 		planning.putClient(client1);
 		planning.putClient(client2);
 		
