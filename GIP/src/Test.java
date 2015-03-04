@@ -19,18 +19,18 @@ public class Test {
 		//LoadOnTruck --> container bij klant ingeven. + 1 (dummy, anders is containers.size() != idleJobs.size())
 		//FillContainer --> container bij depot ingeven.
 		//SWitchContainer --> 2 containers ingeven.
-		Container container = new Container(1,1,client1,true,"");
+		Container container = new Container(1,15,client1,true,"");
 		planning.addContainer(container);
-		Container container1 = new Container(2,1,Planning.depot,true,"");
+		Container container1 = new Container(2,15,Planning.depot,true,"");
 		planning.addContainer(container1);	
-		Container container2 = new Container(2,1,client2,true,"");
+		Container container2 = new Container(2,15,client2,true,"");
 		planning.addContainer(container2);
-		Container container3 = new Container(2,1,Planning.depot,true,"");
+		Container container3 = new Container(2,15,Planning.depot,true,"");
 		planning.addContainer(container3);
 		
 		ArrayList<String> wasteType = new ArrayList<String>();
 		wasteType.add(0,"Paper");
-		AVC avc = new AVC(1,(float) 50.859498,(float) 4.774871, 9,5,wasteType);
+		AVC avc = new AVC(1,(float) 50.859498,(float) 4.774871, 0,36000,wasteType);
 		planning.addAVC(avc);
 		
 		Job job1 = new Job("FillContainer", Planning.depot,client1,container1);

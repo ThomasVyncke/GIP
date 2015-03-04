@@ -16,6 +16,7 @@ public class Planning {
 	private HashMap<Job, Float> fsTimesThirdStage = new HashMap<Job,Float>();
 	private HashMap<Job, Float> fsTimes = new HashMap<Job,Float>();
 	private HashMap<Job, ArrayList<Job>> jobJobs = new HashMap<Job, ArrayList<Job>>();
+	private HashMap<Integer, ArrayList<Job>> jobRoute = new HashMap<Integer, ArrayList<Job>>();
 	
 	private HashMap<Client, Container> containersAtClients = new HashMap<Client, Container>();
 	
@@ -88,7 +89,7 @@ public class Planning {
 	}
 	
 	/** 
-	 *                 
+	 *  Determines feasible alternative locations.        
 	 */
 	public ArrayList<Location> PossibleAlternativeTargetLocations(Container container){
 		
@@ -110,6 +111,7 @@ public class Planning {
 			else{
 				AVC avc = (AVC) container.getContainerLocation();	
 				ArrayList<Client> possibleClients = new ArrayList<Client>();
+			//CHECKEN DAT HIJ ZICHZELF ER NIET UITHAALT	
 				for(int i=0;i<idleJobs.size();i++){
 					Client client;
 					Job job = idleJobs.get(i);
@@ -130,20 +132,76 @@ public class Planning {
 					float timeClientSecondStage = client.getTravelTimeTo(closestAVC);
 					float newBeginTime = timeSoFar + travelTime; 
 					float newEndTime = timeSoFar + travelTime + timeClientSecondStage;					
-					boolean timeTestAVC = (newEndTime < closestAVC.getTimeStop() && newBeginTime > closestAVC.getTimeStart());
+					boolean timeTestAVC = (newEndTime < closestAVC.getTimeStop() && newEndTime > closestAVC.getTimeStart());
 					//Aankomen bij de klant voor die sluit. (service time in rekening brengen evt. door af te trekken van stopTime)			
-					boolean timeTestClient = ((timeSoFar + travelTime) < client.getStopTime());
+					boolean timeTestClient = ((timeSoFar + travelTime) < client.getStopTime() && (timeSoFar + travelTime)>client.getStartTime());
 					
 					if(capacityTest && jobTypeTest && timeTestAVC && timeTestClient){
 						alternativeLocations.add(client);
 					}
-				}
+					
+					for(int j = 0;j<jobRoute.size();j++){
+						ArrayList<Job> completedJobs = jobRoute.get(j);
+						for(int cntr = 0;cntr<completedJobs.size();cntr++){
+							Client visitedClient = (Client) completedJobs.get(cntr).getTargetLocation();
+							alternativeLocations.remove(visitedClient);								
+						}
+					}							
+				}						
 			}
 		}
+		
+		if(container.getContainerLocation() instanceof Client){
+			//Eerst kijken of deze klant zijn job al gebeurd is. --> We staan er om zijn container terug te brengen.
+			for(int i=0;i<idleJobs.size();i++){
+				Client client;
+				Job job = idleJobs.get(i);
+				if(job.getTargetLocation() instanceof Client){
+					client = (Client) job.getTargetLocation();
+				}
+				else{
+					throw new NullPointerException("targetlocations in idlejobs moeten altijd klanten zijn.");
+				}
+				//Truck is sowieso leeg in dit geval, enige mogelijkheid is LoadOnTruck. 
+				boolean jobTypeTest = (job.getJobType().equals("LoadOnTruck"));
+				
+				Location location = container.getContainerLocation();
+				float travelTime = location.getTravelTimeTo(client);
+				//zoekt AVC die open is en dichtste bij.
+				AVC closestAVC = getClosestOpenAVC((Client) idleJobs.get(i).getTargetLocation(), timeSoFar);
+				float timeClientSecondStage = client.getTravelTimeTo(closestAVC);
+				float newBeginTime = timeSoFar + travelTime; 
+				float newEndTime = timeSoFar + travelTime + timeClientSecondStage;					
+				boolean timeTestAVC = (newEndTime < closestAVC.getTimeStop() && newEndTime > closestAVC.getTimeStart());
+				//Aankomen bij de klant voor die sluit. (service time in rekening brengen evt. door af te trekken van stopTime)			
+				boolean timeTestClient = ((timeSoFar + travelTime) < client.getStopTime() && (timeSoFar + travelTime)>client.getStartTime());
+		
+				if(jobTypeTest && timeTestAVC && timeTestClient){
+					alternativeLocations.add(client);
+				}
+				
+				for(int j = 0;j<jobRoute.size();j++){
+					ArrayList<Job> completedJobs = jobRoute.get(j);
+					for(int cntr = 0;cntr<completedJobs.size();cntr++){
+						Client visitedClient = (Client) completedJobs.get(cntr).getTargetLocation();
+						alternativeLocations.remove(visitedClient);								
+					}
+				}					
+			}
+		}
+		return alternativeLocations; 
 	}
-					
-					
-
+			
+	
+	/**
+	 * 
+	 */
+	public void uberHeuristiek(){
+		
+	}
+	
+	
+	
 	/**
 	 * Evt. nog een test voor timewindows invoeren.
 	 * @param container
@@ -172,8 +230,9 @@ public class Planning {
 		return closestAVC;
 	}	
 	
+	
 	/**
-	 * Evt. nog een test voor timewindows invoeren.
+	 *
 	 * @param container
 	 * @return
 	 */
@@ -203,13 +262,49 @@ public class Planning {
 		return closestAVC;
 	}	
 	
+	
 	public void feasibleSolution(){
 		System.out.println("Start generation feasible solution...");
+		//KLANTEN MOETEN CONTAINER NOG TERUG KRIJGEN
 		for(int i = 0;i<idleJobs.size();i++){
 			float jobtime1 = 0;
 			float jobtime2 = 0;
 			ArrayList<Job> jobs = new ArrayList<Job>();
-						
+			if(idleJobs.get(i).getJobType().equals("PlaceClient")){
+				System.out.println("Job " +i+" is a 'PlaceClient' job.");
+				//Eerst oploaden in depot.
+				Job job1 = new Job("LoadPlaceDepot",depot, containers.get(i));
+				jobs.add(job1);
+				
+				jobtime1 = job1.getJobTime();
+				System.out.println("Load container in depot. Time: "+jobtime1);
+				
+				//Dan vullen bij de klant.
+				Job job2 = new Job("PlaceContainer",containers.get(i).getContainerLocation(),idleJobs.get(i).getTargetLocation(),containers.get(i));
+				jobs.add(job2);
+				jobtime2 = job2.getJobTime();
+				System.out.println("Place container at client. Time: "+jobtime2);
+				
+				float jobtime = jobtime1 + jobtime2;
+				fsTimesFirstStage.put(idleJobs.get(i), jobtime);
+				
+				Job job3 = new Job("LoadPlaceDepot",containers.get(i).getContainerLocation(),containers.get(i));				
+				jobs.add(job3);
+				containers.get(i).setContainerLocation(depot);
+				float jobtime3 = job3.getJobTime() - job3.getJobExecutionTime();
+				System.out.println("Bring container back to depot. Time: " +jobtime3);
+				fsTimesSecondStage.put(idleJobs.get(i), jobtime3);
+				System.out.println("Bringing container back to depot. Time: "+jobtime3);
+				
+				jobJobs.put(idleJobs.get(i), jobs);
+				fsTimes.put(idleJobs.get(i),(jobtime1+jobtime2+jobtime3));
+				System.out.println("Total time for job " + i + " is: "+ (jobtime1+jobtime2+jobtime3));								
+			// Nu zit er in fsTimes de feasible solutio n per aangevraagde job met bijhorende tijd.
+				
+				
+				
+			}
+			else{				
 			if(idleJobs.get(i).getJobType().equals("FillContainer")){
 				System.out.println("Job "+i+" is a 'FillContainer' job.");
 				//Eerst opladen in depot.				
@@ -269,6 +364,10 @@ public class Planning {
 			containers.get(i).setWasteType(client.getWasteType());
 			Job job = new Job("EmptyAVC",containers.get(i).getContainerLocation(),containers.get(i));			
 			jobs.add(job);
+			//jobroute bevat <nummer camion, gedane idle jobs>
+			ArrayList<Job> completedIdleJobs = new ArrayList<Job>();
+			completedIdleJobs.add(idleJobs.get(i));			
+			jobRoute.put(i, completedIdleJobs);
 			//Na deze constructor heeft de job een targetlocation. 
 			//De container van bij deze job moet als locatie deze targetlocation krijgen.
 			containers.get(i).setContainerLocation(job.getTargetLocation());
@@ -276,7 +375,9 @@ public class Planning {
 			float jobtime4 = job.getJobTime();
 			System.out.println("Empty container at avc. Time: " + jobtime4);
 			fsTimesSecondStage.put(idleJobs.get(i),jobtime4);					
-		
+			ArrayList<Location> alternatives = new ArrayList<Location>();
+			alternatives = this.PossibleAlternativeTargetLocations(containers.get(i));
+			
 			float jobtime3 = 0;
 			//Bepalen of dezelfde container terug naar de klant moet.
 			if(containers.get(i).getClient() != null){
@@ -287,7 +388,7 @@ public class Planning {
 				System.out.println("Returning container to client. Time: "+jobtime3temp);
 				//met Lege camion terugrijden naar depot. --> Geen job voor maken (enkel travel time).
 				float travelTimeBackToDepot = job4.getTargetLocation().getTravelTimeTo(depot);
-				System.out.println("Bringing container back to depot. Time: "+travelTimeBackToDepot);
+				System.out.println("Driving truck back to depot. Time: "+travelTimeBackToDepot);
 				jobtime3 = jobtime3temp + travelTimeBackToDepot;				
 			}
 			else{
@@ -303,7 +404,8 @@ public class Planning {
 			jobJobs.put(idleJobs.get(i), jobs);
 			fsTimes.put(idleJobs.get(i),(jobtime5+jobtime6+jobtime3));
 			System.out.println("Total time for job " + i + " is: "+ (jobtime5+jobtime6+jobtime3));
-		// Nu zit er in fsTimes de feasible solutio n per aangevraagde job met bijhorende tijd.
+			// Nu zit er in fsTimes de feasible solutio n per aangevraagde job met bijhorende tijd.						
+			}
 		}
 	}
 }
