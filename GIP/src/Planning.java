@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Random;
 
 
 public class Planning {
@@ -91,7 +92,7 @@ public class Planning {
 	/** 
 	 *  Determines feasible alternative locations.        
 	 */
-	public ArrayList<Location> PossibleAlternativeTargetLocations(Container container){
+	public ArrayList<Location> PossibleAlternativeTargetLocations(Container container, Location location){
 		
 		//Tijd die gegeven container reeds doorgaan is. 
 		int indexOfContainer = containers.indexOf(container);
@@ -102,14 +103,14 @@ public class Planning {
 		//Lijst van mogelijke next stops maken.
 		ArrayList<Location> alternativeLocations = new ArrayList<Location>();
 		//Checken of we in een AVC zitten.
-		if(container.getContainerLocation() instanceof AVC){
+		if(location instanceof AVC){
 			//Als container terug moet naar zelfde klant --> geen alternatieve locaties.
 			if(container.getClient() != null){
 				return null;
 			}
 			//Anders over alle mogelijke klanten itereren die een fill/switch/place job aanvroegen. 
 			else{
-				AVC avc = (AVC) container.getContainerLocation();	
+				AVC avc = (AVC) location;	
 				ArrayList<Client> possibleClients = new ArrayList<Client>();
 			//CHECKEN DAT HIJ ZICHZELF ER NIET UITHAALT	
 				for(int i=0;i<idleJobs.size();i++){
@@ -125,7 +126,7 @@ public class Planning {
 					boolean capacityTest = (cap == container.getCapacity());
 					boolean jobTypeTest = (job.getJobType().equals("FillContainer") || job.getJobType().equals("SwitchContainer") || job.getJobType().equals("PlaceContainer"));
 					
-					Location location = container.getContainerLocation();
+					
 					float travelTime = location.getTravelTimeTo(client);
 					//zoekt AVC die open is en dichtste bij.
 					AVC closestAVC = getClosestOpenAVC((Client) idleJobs.get(i).getTargetLocation(), timeSoFar);
@@ -143,8 +144,12 @@ public class Planning {
 					for(int j = 0;j<jobRoute.size();j++){
 						ArrayList<Job> completedJobs = jobRoute.get(j);
 						for(int cntr = 0;cntr<completedJobs.size();cntr++){
-							Client visitedClient = (Client) completedJobs.get(cntr).getTargetLocation();
-							alternativeLocations.remove(visitedClient);								
+							if(completedJobs.get(cntr).getTargetLocation() instanceof Client){
+								Client visitedClient = (Client) completedJobs.get(cntr).getTargetLocation();
+									alternativeLocations.remove(visitedClient);		
+							}
+							else{								
+							}
 						}
 					}							
 				}						
@@ -165,7 +170,6 @@ public class Planning {
 				//Truck is sowieso leeg in dit geval, enige mogelijkheid is LoadOnTruck. 
 				boolean jobTypeTest = (job.getJobType().equals("LoadOnTruck"));
 				
-				Location location = container.getContainerLocation();
 				float travelTime = location.getTravelTimeTo(client);
 				//zoekt AVC die open is en dichtste bij.
 				AVC closestAVC = getClosestOpenAVC((Client) idleJobs.get(i).getTargetLocation(), timeSoFar);
@@ -197,8 +201,131 @@ public class Planning {
 	 * 
 	 */
 	public void uberHeuristiek(){
+		float timeSoFar = 0;
+		float startTemperature = 2000;
+		float coolingFactor = (float) 0.95;
+		float tempLimit = (float) 0.01; 
+		float maxIt = 2500;
+		float temperature = startTemperature;
 		
-	}
+		for(int i = 0; i < maxIt && temperature<tempLimit ;i++){
+			
+			Random randomgen = new Random();
+			int randomNumber = randomgen.nextInt(jobRoute.size());
+			//--> Lijst van opeenvolgende idleJobs.
+			ArrayList<Job> idleJobsPerformed = jobRoute.get(randomNumber); 
+			//--> Daarvan laatste nemen
+			Job lastIdleJob = idleJobsPerformed.get(idleJobsPerformed.size()-1);
+			//--> Daarvan jobsequentie.
+			ArrayList<Job> jobSequentie = jobJobs.get(lastIdleJob);
+			//--> Daarvan voorlaaste.
+			Job voorlaatsteJob = jobSequentie.get(jobSequentie.size()-2);
+			
+			ArrayList<Location> alternatives = PossibleAlternativeTargetLocations(voorlaatsteJob.getContainer(), voorlaatsteJob.getTargetLocation());
+						
+			int amountOfRoutes = jobJobs.size();
+			//Voor we hier binnenkomen is er een route voor elke idleJob.
+			int negSumOfRsquaredAbs = amountOfRoutes;
+			Location bestAlternative = null; 
+			
+			for(int j = 0; j< alternatives.size();j++){
+				HashMap<Job, ArrayList<Job>> jobJobsClone = (HashMap<Job, ArrayList<Job>>) jobJobs.clone();
+				HashMap<Integer, ArrayList<Job>> jobRouteClone = (HashMap<Integer, ArrayList<Job>>) jobRoute.clone();
+				ArrayList<Job> idleJobsClone = (ArrayList<Job>) idleJobs.clone();
+				int key;
+				Location locationToSearch = alternatives.get(j);
+				for(int counter = 0; counter<idleJobsClone.size(); counter++){
+					//zoek bij welke idleJobs de alternatieve locatie hoort, en zoek de key ervan in jobRoute.
+					if(locationToSearch == idleJobsClone.get(counter).getTargetLocation()){
+						//get key from value. 
+						
+						for(int cntr = 0; cntr< jobRouteClone.size();cntr++){
+							ArrayList<Job> jobsInJobRoute = jobRouteClone.get(cntr);
+							
+							if(jobsInJobRoute.get(0).getTargetLocation().equals(locationToSearch)){
+								key = cntr;
+							}
+						}
+					}
+				}
+				//Nu weten we waar er een sequentie van IdleJobs staat die begint met een IdleJob met als TargetLocation de alternatieve locatie van onze random gekozen.
+				ArrayList<Job> idleJobsInJobRoute = jobRouteClone.get(key);
+						
+				//Eerste pijl in jobsequentie
+				Job firstArrow = jobJobsClone.get(idleJobsInJobRoute.get(0)).get(0);
+				//Moet in jobJobs aangepast worden want dat is de enige link tussen idleJobs en hun sequentie van jobs.
+				if(jobJobsClone.get(idleJobsInJobRoute.get(0)).remove(firstArrow)){}
+				else{
+					throw new NullPointerException("hij kan eerste arrow niet verwijderen dus alternativelocations werkt niet.");
+				}						
+				//Laatste pijl in jobsequentie
+				Job lastArrow = jobSequentie.get(jobSequentie.size()-1);
+				//Moet in jobJobs aangepast worden want dat is de enige link tussen idleJobs en hun sequentie van jobs.
+				if(jobJobsClone.get(lastIdleJob).remove(lastArrow)){}
+				else{
+					throw new NullPointerException("hij kan laatste arrow niet verwijderen dus alternativelocations werkt niet.");
+				}
+				//idleJobs achter mekaar plakken in jobRoute.
+				jobRouteClone.get(randomNumber).addAll(idleJobsInJobRoute);
+				
+				//score berekenen
+				//1. #routes
+				int tempAmountOfRoutes = jobRouteClone.size();
+				int tempNegSumOfRSquaredAbs = 0;
+				//2. -|r²|
+				negSumOfRsquaredAbs = 0;
+				for(int cntr = 0;cntr < jobRouteClone.size();cntr++){
+					int r = jobRouteClone.get(cntr).size();
+					int rsquared = (int) Math.pow(r, 2);
+					tempNegSumOfRSquaredAbs = negSumOfRsquaredAbs - Math.abs(rsquared);
+				}
+				
+				if(tempAmountOfRoutes < amountOfRoutes){
+					if(tempNegSumOfRSquaredAbs < negSumOfRsquaredAbs){
+						bestAlternative = alternatives.get(j);						
+					}
+					if(tempNegSumOfRSquaredAbs == negSumOfRsquaredAbs){
+						Float time = (float) 0;
+						for(int teller = 0; teller<jobRouteClone.size(); teller++){
+							ArrayList<Job> idleJobs = jobRouteClone.get(teller);
+							for(int teller2 = 0; teller2<idleJobs.size(); teller2++){
+								ArrayList<Job> jobSequence = jobJobsClone.get(idleJobs.get(teller2));
+								//NOG EEN NIEUWE JOB MAKEN
+								for(int teller3 = 0; teller3<idleJobs.size(); teller3++){
+									Job job = jobSequence.get(teller3);
+									time = time + job.getJobTime();									
+								}
+							}												
+						}
+					}
+					
+					
+					
+					
+				//3. tijd: LINK TUSSEN TWEE ROUTES UITREKENEN
+				
+			//NOG EEN NIEUWE JOB MAKEN
+			//ZET VAN DE BESTE DE CLONE als terug de echte
+			
+			}		
+					
+				
+					
+					
+				}
+				
+				
+			
+			//LOC --> IdleJob
+			//JobRoute - IdleJob
+			//Achter Random plakken
+			//Jobjobs: laatste: 1ste nemen, eerste: laatste nemen
+			//Totaltime
+			
+			
+			}
+		}	
+	
 	
 	
 	
@@ -365,9 +492,7 @@ public class Planning {
 			Job job = new Job("EmptyAVC",containers.get(i).getContainerLocation(),containers.get(i));			
 			jobs.add(job);
 			//jobroute bevat <nummer camion, gedane idle jobs>
-			ArrayList<Job> completedIdleJobs = new ArrayList<Job>();
-			completedIdleJobs.add(idleJobs.get(i));			
-			jobRoute.put(i, completedIdleJobs);
+			
 			//Na deze constructor heeft de job een targetlocation. 
 			//De container van bij deze job moet als locatie deze targetlocation krijgen.
 			containers.get(i).setContainerLocation(job.getTargetLocation());
@@ -375,8 +500,8 @@ public class Planning {
 			float jobtime4 = job.getJobTime();
 			System.out.println("Empty container at avc. Time: " + jobtime4);
 			fsTimesSecondStage.put(idleJobs.get(i),jobtime4);					
-			ArrayList<Location> alternatives = new ArrayList<Location>();
-			alternatives = this.PossibleAlternativeTargetLocations(containers.get(i));
+			//ArrayList<Location> alternatives = new ArrayList<Location>();
+			//alternatives = this.PossibleAlternativeTargetLocations(containers.get(i));
 			
 			float jobtime3 = 0;
 			//Bepalen of dezelfde container terug naar de klant moet.
@@ -387,7 +512,11 @@ public class Planning {
 				float jobtime3temp = job4.getJobTime();
 				System.out.println("Returning container to client. Time: "+jobtime3temp);
 				//met Lege camion terugrijden naar depot. --> Geen job voor maken (enkel travel time).
-				float travelTimeBackToDepot = job4.getTargetLocation().getTravelTimeTo(depot);
+				
+				Job job5 = new Job("LoadPlaceDepot",containers.get(i).getContainerLocation(),containers.get(i));				
+				jobs.add(job5);
+				containers.get(i).setContainerLocation(depot);
+				float travelTimeBackToDepot = job5.getJobTime() - job5.getJobExecutionTime();
 				System.out.println("Driving truck back to depot. Time: "+travelTimeBackToDepot);
 				jobtime3 = jobtime3temp + travelTimeBackToDepot;				
 			}
