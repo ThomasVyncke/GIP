@@ -130,9 +130,46 @@ public class Planning {
 					float travelTime = location.getTravelTimeTo(client);
 					//zoekt AVC die open is en dichtste bij.
 					AVC closestAVC = getClosestOpenAVC((Client) idleJobs.get(i).getTargetLocation(), timeSoFar);
+					
+
+					double key = Double.POSITIVE_INFINITY;
+					Client locationToSearch = client;
+					for(int counter = 0; counter<idleJobs.size(); counter++){
+						//zoek bij welke idleJobs de gegeven locatie hoort, en zoek de key ervan in jobRoute.
+						if(locationToSearch == idleJobs.get(counter).getTargetLocation()){
+							//get key from value. 								
+							for(double cntr = 0; cntr< jobRoute.size();cntr++){
+								ArrayList<Job> jobsInJobRoute = jobRoute.get(cntr);
+								if(jobsInJobRoute.get(0).getTargetLocation().equals(locationToSearch)){
+									key = cntr;
+								}
+								else{							
+								}
+							}
+						}
+					}	
+					
+					//De doorlooptijd berekenen.
+					jobRoute.get(key);
+					Float time = (float) 0;
+					for(int teller = 0; teller<jobRoute.size(); teller++){
+						ArrayList<Job> idleJobs = jobRoute.get(teller);
+						for(int teller2 = 0; teller2<idleJobs.size(); teller2++){
+							ArrayList<Job> jobSequence = jobJobs.get(idleJobs.get(teller2));
+							for(int teller3 = 0; teller3<idleJobs.size(); teller3++){
+								Job jobInSequence = jobSequence.get(teller3);
+								time = time + jobInSequence.getJobTime();									
+							}
+						}											
+					}
+					
+					
+					
+					
 					float timeClientSecondStage = client.getTravelTimeTo(closestAVC);
 					float newBeginTime = timeSoFar + travelTime; 
 					float newEndTime = timeSoFar + travelTime + timeClientSecondStage;					
+					//HIER MOET OOK INKOMEN DAT DE BESCHOUWDE ALTERNATIVE LOCATION DE EERSTE MOET ZIJN VAN DE IDLEJOBSEQUENCE
 					boolean timeTestAVC = (newEndTime < closestAVC.getTimeStop() && newEndTime > closestAVC.getTimeStart());
 					//Aankomen bij de klant voor die sluit. (service time in rekening brengen evt. door af te trekken van stopTime)			
 					boolean timeTestClient = ((timeSoFar + travelTime) < client.getStopTime() && (timeSoFar + travelTime)>client.getStartTime());
@@ -152,7 +189,7 @@ public class Planning {
 							}
 						}
 					}							
-				}						
+				}					
 			}
 		}
 		
@@ -226,13 +263,19 @@ public class Planning {
 			int amountOfRoutes = jobJobs.size();
 			//Voor we hier binnenkomen is er een route voor elke idleJob.
 			int negSumOfRsquaredAbs = amountOfRoutes;
+			float totalExecutionTime = (float) Double.POSITIVE_INFINITY;
 			Location bestAlternative = null; 
+			int key = 0;
+			HashMap<Job, ArrayList<Job>> bestJobJobsClone = (HashMap<Job, ArrayList<Job>>) jobJobs.clone();
+			HashMap<Integer, ArrayList<Job>> bestJobRouteClone = (HashMap<Integer, ArrayList<Job>>) jobRoute.clone();
+			ArrayList<Job> bestIdleJobsClone = (ArrayList<Job>) idleJobs.clone();
+			
 			
 			for(int j = 0; j< alternatives.size();j++){
 				HashMap<Job, ArrayList<Job>> jobJobsClone = (HashMap<Job, ArrayList<Job>>) jobJobs.clone();
 				HashMap<Integer, ArrayList<Job>> jobRouteClone = (HashMap<Integer, ArrayList<Job>>) jobRoute.clone();
 				ArrayList<Job> idleJobsClone = (ArrayList<Job>) idleJobs.clone();
-				int key;
+				
 				Location locationToSearch = alternatives.get(j);
 				for(int counter = 0; counter<idleJobsClone.size(); counter++){
 					//zoek bij welke idleJobs de alternatieve locatie hoort, en zoek de key ervan in jobRoute.
@@ -248,20 +291,28 @@ public class Planning {
 						}
 					}
 				}
+				
 				//Nu weten we waar er een sequentie van IdleJobs staat die begint met een IdleJob met als TargetLocation de alternatieve locatie van onze random gekozen.
 				ArrayList<Job> idleJobsInJobRoute = jobRouteClone.get(key);
 						
 				//Eerste pijl in jobsequentie
 				Job firstArrow = jobJobsClone.get(idleJobsInJobRoute.get(0)).get(0);
+				String firstArrowJobType = firstArrow.getJobType();
+				Job connectionJob = new Job(firstArrowJobType, voorlaatsteJob.getTargetLocation(), lastIdleJob.getTargetLocation(), voorlaatsteJob.getContainer());
+				
 				//Moet in jobJobs aangepast worden want dat is de enige link tussen idleJobs en hun sequentie van jobs.
-				if(jobJobsClone.get(idleJobsInJobRoute.get(0)).remove(firstArrow)){}
+				if(jobJobsClone.get(idleJobsInJobRoute.get(0)).remove(firstArrow)){
+					
+				}
 				else{
 					throw new NullPointerException("hij kan eerste arrow niet verwijderen dus alternativelocations werkt niet.");
 				}						
 				//Laatste pijl in jobsequentie
 				Job lastArrow = jobSequentie.get(jobSequentie.size()-1);
 				//Moet in jobJobs aangepast worden want dat is de enige link tussen idleJobs en hun sequentie van jobs.
-				if(jobJobsClone.get(lastIdleJob).remove(lastArrow)){}
+				if(jobJobsClone.get(lastIdleJob).remove(lastArrow)){
+					jobJobsClone.get(lastIdleJob).add(connectionJob);
+				}
 				else{
 					throw new NullPointerException("hij kan laatste arrow niet verwijderen dus alternativelocations werkt niet.");
 				}
@@ -282,7 +333,10 @@ public class Planning {
 				
 				if(tempAmountOfRoutes < amountOfRoutes){
 					if(tempNegSumOfRSquaredAbs < negSumOfRsquaredAbs){
-						bestAlternative = alternatives.get(j);						
+						bestAlternative = alternatives.get(j);
+						bestJobRouteClone = jobRouteClone;
+						bestIdleJobsClone = idleJobsClone;
+						bestJobJobsClone = jobJobsClone;
 					}
 					if(tempNegSumOfRSquaredAbs == negSumOfRsquaredAbs){
 						Float time = (float) 0;
@@ -290,42 +344,29 @@ public class Planning {
 							ArrayList<Job> idleJobs = jobRouteClone.get(teller);
 							for(int teller2 = 0; teller2<idleJobs.size(); teller2++){
 								ArrayList<Job> jobSequence = jobJobsClone.get(idleJobs.get(teller2));
-								//NOG EEN NIEUWE JOB MAKEN
 								for(int teller3 = 0; teller3<idleJobs.size(); teller3++){
 									Job job = jobSequence.get(teller3);
 									time = time + job.getJobTime();									
 								}
-							}												
+							}											
+						}
+						if(time < totalExecutionTime){
+							bestAlternative = alternatives.get(j);
+							bestJobRouteClone = jobRouteClone;
+							bestIdleJobsClone = idleJobsClone;
+							bestJobJobsClone = jobJobsClone;
 						}
 					}
-					
-					
-					
-					
-				//3. tijd: LINK TUSSEN TWEE ROUTES UITREKENEN
-				
-			//NOG EEN NIEUWE JOB MAKEN
-			//ZET VAN DE BESTE DE CLONE als terug de echte
-			
-			}		
-					
-				
-					
-					
+					else{}
 				}
-				
-				
-			
-			//LOC --> IdleJob
-			//JobRoute - IdleJob
-			//Achter Random plakken
-			//Jobjobs: laatste: 1ste nemen, eerste: laatste nemen
-			//Totaltime
-			
-			
 			}
-		}	
-	
+			this.jobJobs = bestJobJobsClone;
+			this.jobRoute = bestJobRouteClone;
+			this.idleJobs = bestIdleJobsClone;			
+		}		
+	}
+				
+
 	
 	
 	
