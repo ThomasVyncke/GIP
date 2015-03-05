@@ -149,6 +149,9 @@ public class Planning {
 						}
 					}	
 					
+					//CHECKT OF DAT AAN ALLE TIMEWINDOWS VAN AVCS EN KLANTEN IN EEN POTENTIELE LOCATIE (+zijn vervolg!!!) VOLDAAN ZIJN.
+					boolean timeTestAVC = true;
+					boolean timeTestClient = true;
 					//De doorlooptijd berekenen.
 					jobRoute.get(key);
 					Float time = (float) 0;
@@ -156,23 +159,33 @@ public class Planning {
 						ArrayList<Job> idleJobs = jobRoute.get(teller);
 						for(int teller2 = 0; teller2<idleJobs.size(); teller2++){
 							ArrayList<Job> jobSequence = jobJobs.get(idleJobs.get(teller2));
-							for(int teller3 = 0; teller3<idleJobs.size(); teller3++){
-								Job jobInSequence = jobSequence.get(teller3);
-								time = time + jobInSequence.getJobTime();									
+							for(int teller3 = 0; teller3<jobSequence.size(); teller3++){
+								Job jobInSequence = jobSequence.get(teller3);								
+								time = time + jobInSequence.getJobTime();	
+								
+								if(jobInSequence.getTargetLocation() instanceof AVC){
+									AVC avcInSequence = (AVC) jobInSequence.getTargetLocation();
+									if(time > 28800 || time < avcInSequence.getTimeStart() || time> avcInSequence.getTimeStop()){
+										timeTestAVC = false;
+										break;
+									}
+								}
+								if(jobInSequence.getTargetLocation() instanceof Client){
+									Client clientInSequence = (Client) jobInSequence.getTargetLocation();
+									if(time > 28800 || time < clientInSequence.getStartTime() || time> clientInSequence.getStopTime()){
+										timeTestClient = false;
+										break;
+									}
+								}
 							}
-						}											
-					}
-					
-					
-					
+						}
+					}															
 					
 					float timeClientSecondStage = client.getTravelTimeTo(closestAVC);
 					float newBeginTime = timeSoFar + travelTime; 
 					float newEndTime = timeSoFar + travelTime + timeClientSecondStage;					
 					//HIER MOET OOK INKOMEN DAT DE BESCHOUWDE ALTERNATIVE LOCATION DE EERSTE MOET ZIJN VAN DE IDLEJOBSEQUENCE
-					boolean timeTestAVC = (newEndTime < closestAVC.getTimeStop() && newEndTime > closestAVC.getTimeStart());
 					//Aankomen bij de klant voor die sluit. (service time in rekening brengen evt. door af te trekken van stopTime)			
-					boolean timeTestClient = ((timeSoFar + travelTime) < client.getStopTime() && (timeSoFar + travelTime)>client.getStartTime());
 					
 					if(capacityTest && jobTypeTest && timeTestAVC && timeTestClient){
 						alternativeLocations.add(client);
@@ -344,7 +357,7 @@ public class Planning {
 							ArrayList<Job> idleJobs = jobRouteClone.get(teller);
 							for(int teller2 = 0; teller2<idleJobs.size(); teller2++){
 								ArrayList<Job> jobSequence = jobJobsClone.get(idleJobs.get(teller2));
-								for(int teller3 = 0; teller3<idleJobs.size(); teller3++){
+								for(int teller3 = 0; teller3<jobSequence.size(); teller3++){
 									Job job = jobSequence.get(teller3);
 									time = time + job.getJobTime();									
 								}
