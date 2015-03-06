@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 
@@ -112,7 +113,7 @@ public class Planning {
 			else{
 				AVC avc = (AVC) location;	
 				ArrayList<Client> possibleClients = new ArrayList<Client>();
-			//CHECKEN DAT HIJ ZICHZELF ER NIET UITHAALT	
+			//CHECKEN DAT HIJ ZICHZELF ER NIET UITHAALT.	
 				for(int i=0;i<idleJobs.size();i++){
 					Client client;
 					Job job = idleJobs.get(i);
@@ -181,9 +182,6 @@ public class Planning {
 						}
 					}															
 					
-					float timeClientSecondStage = client.getTravelTimeTo(closestAVC);
-					float newBeginTime = timeSoFar + travelTime; 
-					float newEndTime = timeSoFar + travelTime + timeClientSecondStage;					
 					//HIER MOET OOK INKOMEN DAT DE BESCHOUWDE ALTERNATIVE LOCATION DE EERSTE MOET ZIJN VAN DE IDLEJOBSEQUENCE
 					//Aankomen bij de klant voor die sluit. (service time in rekening brengen evt. door af te trekken van stopTime)			
 					
@@ -250,8 +248,7 @@ public class Planning {
 	/**
 	 * 
 	 */
-	public void uberHeuristiek(){
-		float timeSoFar = 0;
+	public void uberHeuristiekRouteOpt(){
 		float startTemperature = 2000;
 		float coolingFactor = (float) 0.95;
 		float tempLimit = (float) 0.01; 
@@ -262,6 +259,7 @@ public class Planning {
 			
 			Random randomgen = new Random();
 			int randomNumber = randomgen.nextInt(jobRoute.size());
+			
 			//--> Lijst van opeenvolgende idleJobs.
 			ArrayList<Job> idleJobsPerformed = jobRoute.get(randomNumber); 
 			//--> Daarvan laatste nemen
@@ -272,13 +270,13 @@ public class Planning {
 			Job voorlaatsteJob = jobSequentie.get(jobSequentie.size()-2);
 			
 			ArrayList<Location> alternatives = PossibleAlternativeTargetLocations(voorlaatsteJob.getContainer(), voorlaatsteJob.getTargetLocation());
-						
+			
 			int amountOfRoutes = jobJobs.size();
 			//Voor we hier binnenkomen is er een route voor elke idleJob.
 			int negSumOfRsquaredAbs = amountOfRoutes;
 			float totalExecutionTime = (float) Double.POSITIVE_INFINITY;
 			Location bestAlternative = null; 
-			int key = 0;
+			double key = Double.POSITIVE_INFINITY;
 			HashMap<Job, ArrayList<Job>> bestJobJobsClone = (HashMap<Job, ArrayList<Job>>) jobJobs.clone();
 			HashMap<Integer, ArrayList<Job>> bestJobRouteClone = (HashMap<Integer, ArrayList<Job>>) jobRoute.clone();
 			ArrayList<Job> bestIdleJobsClone = (ArrayList<Job>) idleJobs.clone();
@@ -311,7 +309,8 @@ public class Planning {
 				//Eerste pijl in jobsequentie
 				Job firstArrow = jobJobsClone.get(idleJobsInJobRoute.get(0)).get(0);
 				String firstArrowJobType = firstArrow.getJobType();
-				Job connectionJob = new Job(firstArrowJobType, voorlaatsteJob.getTargetLocation(), lastIdleJob.getTargetLocation(), voorlaatsteJob.getContainer());
+				//MOET DAT HIER WEL LASTIDLEJOB ZIJN? WAAROM NIET DE EERSTE VAN IDLEJOBSINJOBROUTE (--> veranderd naar firstArrow)
+				Job connectionJob = new Job(firstArrowJobType, voorlaatsteJob.getTargetLocation(), firstArrow.getTargetLocation(), voorlaatsteJob.getContainer());
 				
 				//Moet in jobJobs aangepast worden want dat is de enige link tussen idleJobs en hun sequentie van jobs.
 				if(jobJobsClone.get(idleJobsInJobRoute.get(0)).remove(firstArrow)){
@@ -331,6 +330,8 @@ public class Planning {
 				}
 				//idleJobs achter mekaar plakken in jobRoute.
 				jobRouteClone.get(randomNumber).addAll(idleJobsInJobRoute);
+				//idleJObs op de key-plaats verwijderen.
+				jobRouteClone.remove(key);
 				
 				//score berekenen
 				//1. #routes
@@ -373,9 +374,41 @@ public class Planning {
 					else{}
 				}
 			}
-			this.jobJobs = bestJobJobsClone;
+			this.jobJobs  = bestJobJobsClone;
 			this.jobRoute = bestJobRouteClone;
 			this.idleJobs = bestIdleJobsClone;			
+		}		
+	}
+	
+	public void uberHeuristiekTimeOpt(){
+		//Alle idleJobs op een bepaalde index van jobRoute permuteren om zo te optimaliseren in de tijd. 
+		//feasibility nog steeds testen.
+		//de connecting jobs verwijderen en opnieuw aanmaken voor de nieuwe volgorde. 
+		Collection<List<Integer>> output = null;
+		ArrayList<Job> idleJobsInRoute;
+		for(int i=0; i<jobRoute.size();i++){
+			//Een route eruit nemen
+			idleJobsInRoute = jobRoute.get(i);
+			//Binnen die route moeten permutaties worden uitgevoerd 
+			//Eerst kijken waar de connectionJob zich bevindt. Deze moet eerst verwijderd worden. (--> laatste job)
+			
+			
+			Permutations<Integer> obj = new Permutations<Integer>();
+			Collection<Integer> input = new ArrayList<Integer>();
+			for(int j=0;j<idleJobsInRoute.size();j++){
+				input.add(j);
+			}
+			output = obj.permute(input);	
+			
+			//verschillende permutaties linken aan jobs en tijd uitrekenen
+			for (List<Integer> permutation : output) {
+				ArrayList<Job> jobPermutation = new ArrayList<Job>();
+				for(int j=0;j<permutation.size();j++){					  
+					  jobPermutation.add(idleJobsInRoute.get(permutation.get(j)));
+				}
+				
+			}			
+			
 		}		
 	}
 				
@@ -481,9 +514,8 @@ public class Planning {
 				fsTimes.put(idleJobs.get(i),(jobtime1+jobtime2+jobtime3));
 				System.out.println("Total time for job " + i + " is: "+ (jobtime1+jobtime2+jobtime3));								
 			// Nu zit er in fsTimes de feasible solutio n per aangevraagde job met bijhorende tijd.
-				
-				
-				
+					
+			
 			}
 			else{				
 			if(idleJobs.get(i).getJobType().equals("FillContainer")){

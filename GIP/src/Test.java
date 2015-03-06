@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -7,8 +8,7 @@ import java.util.Locale;
 public class Test {
 
 	public static void main(String[] args) {
-		Planning planning = new Planning("Thomas");
-		
+		Planning planning = new Planning("Thomas");		
 		
 		Client client1 = new Client(1,"a",0, 36000, (float) 50.873459,(float) 4.716051,"Paper",true,0,15);
 		Client client2 = new Client(1,"b",0, 36000, (float) 50.818181,(float) 4.902819,"Paper",true,0,15);
