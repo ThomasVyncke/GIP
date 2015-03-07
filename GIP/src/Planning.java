@@ -384,6 +384,17 @@ public class Planning {
 		//Alle idleJobs op een bepaalde index van jobRoute permuteren om zo te optimaliseren in de tijd. 
 		//feasibility nog steeds testen.
 		//de connecting jobs verwijderen en opnieuw aanmaken voor de nieuwe volgorde. 
+		
+		//Clonen om beste so far in op te slaan
+		HashMap<Job, ArrayList<Job>> bestJobJobsClone = (HashMap<Job, ArrayList<Job>>) jobJobs.clone();
+		HashMap<Integer, ArrayList<Job>> bestJobRouteClone = (HashMap<Integer, ArrayList<Job>>) jobRoute.clone();
+		ArrayList<Job> bestIdleJobsClone = (ArrayList<Job>) idleJobs.clone();
+		
+		//Clonen om elke iteratie in te kutten.
+		HashMap<Job, ArrayList<Job>> JobJobsClone = (HashMap<Job, ArrayList<Job>>) jobJobs.clone();
+		HashMap<Integer, ArrayList<Job>> JobRouteClone = (HashMap<Integer, ArrayList<Job>>) jobRoute.clone();
+		ArrayList<Job> IdleJobsClone = (ArrayList<Job>) idleJobs.clone();
+		
 		Collection<List<Integer>> output = null;
 		ArrayList<Job> idleJobsInRoute;
 		for(int i=0; i<jobRoute.size();i++){
@@ -392,25 +403,67 @@ public class Planning {
 			//Binnen die route moeten permutaties worden uitgevoerd 
 			//Eerst kijken waar de connectionJob zich bevindt. Deze moet eerst verwijderd worden. (--> laatste job)
 			
-			
+			//Alle permutaties bepalen.
 			Permutations<Integer> obj = new Permutations<Integer>();
 			Collection<Integer> input = new ArrayList<Integer>();
 			for(int j=0;j<idleJobsInRoute.size();j++){
 				input.add(j);
 			}
 			output = obj.permute(input);	
+						
+			ArrayList<Job> bestJobPermutation = new ArrayList<Job>();
+			HashMap<Job,ArrayList<Job>> bestJobJobs = new HashMap<Job, ArrayList<Job>>();
+			float bestTime = (float) Double.POSITIVE_INFINITY;
+			float timePermutated;
 			
-			//verschillende permutaties linken aan jobs en tijd uitrekenen
 			for (List<Integer> permutation : output) {
+				HashMap<Job,ArrayList<Job>> jobJobsClone = (HashMap<Job, ArrayList<Job>>) jobJobs.clone();
 				ArrayList<Job> jobPermutation = new ArrayList<Job>();
 				for(int j=0;j<permutation.size();j++){					  
 					  jobPermutation.add(idleJobsInRoute.get(permutation.get(j)));
 				}
-				
-			}			
-			
-		}		
-	}
+				//Van elke job, behalve de laatste, de laatste in sequentie wegdoen.
+				for(int j=0;j<permutation.size()-2;j++){
+					//Bepaalde idleJob nemen.
+					Job idleJob = jobPermutation.get(j);					
+					//Laatste job in diens jobSequentie nemen.
+					Job lastJobInIdleJob = jobJobsClone.get(idleJob).get(jobJobsClone.get(idleJob).size()-1);
+					
+					//Volgende idleJob nemen.
+					Job nextIdleJob = jobPermutation.get(j+1);
+					//Eerste job in diens jobSequentie nemen
+					Job firstJobInNextIdleJob = jobJobsClone.get(nextIdleJob).get(0);
+					
+					Job newConnectionJob = new Job(lastJobInIdleJob.getJobType(),lastJobInIdleJob.getTargetLocation(), firstJobInNextIdleJob.getStartLocation() , lastJobInIdleJob.getContainer());
+					
+					//Laatste job in de sequentie verwijderen
+					if(jobJobsClone.get(idleJob).remove(lastJobInIdleJob)){
+						//vervangen door de nieuwe connectionJob.
+						jobJobsClone.get(idleJob).add(newConnectionJob);
+					}
+					else{
+						throw new NullPointerException("kan de laatste idleJob niet verwijderen");
+					}
+				}	
+				timePermutated = 0;
+				for(int j=0;j<jobPermutation.size();j++){
+					Job idleJobInPermutation = jobPermutation.get(j);
+					ArrayList<Job> jobSequenceInPermutation = jobJobsClone.get(idleJobInPermutation);
+					for(int cntr = 0;cntr<jobSequenceInPermutation.size();cntr++){
+						timePermutated = timePermutated + jobSequenceInPermutation.get(cntr).getJobTime();						
+					}
+				}
+				if(timePermutated < bestTime){
+					bestTime = timePermutated;
+					bestJobPermutation = jobPermutation;
+					bestJobJobs = jobJobsClone;
+				}
+			}
+			jobJobs = bestJobJobs;
+			jobRoute.put(i, bestJobPermutation);
+		}			
+	}		
+	
 				
 
 	
