@@ -7,11 +7,12 @@ import java.util.Locale;
 
 public class Test {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) {		
+		
 		Planning planning = new Planning("Thomas");		
 		
-		Client client1 = new Client(1,"a",0, 36000, (float) 50.873459,(float) 4.716051,"Paper",true,0,15);
-		Client client2 = new Client(1,"b",0, 36000, (float) 50.818181,(float) 4.902819,"Paper",true,0,15);
+		Client client1 = new Client(1,"a",0, 36000, (float) 50.3,(float) 4.716051,"Paper",true,0,15);
+		Client client2 = new Client(2,"b",0, 36000, (float) 50.818181,(float) 4.902819,"Paper",true,0,15);
 		planning.putClient(client1);
 		planning.putClient(client2);
 		
@@ -30,7 +31,7 @@ public class Test {
 		
 		ArrayList<String> wasteType = new ArrayList<String>();
 		wasteType.add(0,"Paper");
-		AVC avc = new AVC(1,(float) 50.859498,(float) 4.774871, 0,36000,wasteType);
+		AVC avc = new AVC(1,(float) 50.5,(float) 4.774871, 0,36000,wasteType);
 		planning.addAVC(avc);
 		
 		Job job1 = new Job("FillContainer", Planning.depot,client1,container1);
@@ -52,6 +53,7 @@ public class Test {
 		//System.out.println("job2 jobTime = " + job2.getJobTime());
 		
 		planning.feasibleSolution();
+		planning.uberHeuristiekRouteOpt();
 		
 		
 		
