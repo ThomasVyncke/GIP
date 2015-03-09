@@ -64,6 +64,7 @@ public class Job {
 		}
 		if(this.jobType.equals("LoadOnTruck")){
 			this.setTargetLocation(null);
+			throw new NullPointerException("LoadOnTruck moet altijd een targetlocation meekrijgen.");
 		}
 		if(this.jobType.equals("PlaceClient")){
 			//brengt in rekening dat sommige klanten altijd zelfde container nodig hebben. dus container bevat klant.
@@ -76,7 +77,7 @@ public class Job {
 		}
 		if(this.jobType.equals("LoadPlaceDepot")){
 			if(this.getStartLocation() instanceof Depot){
-				this.setTargetLocation(null);
+				this.setTargetLocation(Planning.depot);
 			}
 			else{
 				this.setTargetLocation(Planning.depot);

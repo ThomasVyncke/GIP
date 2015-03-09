@@ -28,6 +28,7 @@ public class Client extends Location {
 		this.containerCapacity = containerCapacity;
 		this.startTime = startTime;
 		this.stopTime = stopTime; 
+		this.name = name;
 	}
 	
 	public Client(int ID, String name, float latitude, float longitude, String wasteType, Boolean sameContainer, float additionalTime, Container startContainer, int containerCapacity){
@@ -37,6 +38,7 @@ public class Client extends Location {
 		this.additionalTime = additionalTime;
 		this.addContainer(startContainer);
 		this.containerCapacity = containerCapacity;
+		this.name = name;
 	}
 	
 	public float getStopTime() {
